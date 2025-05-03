@@ -24,15 +24,38 @@ The files in this directory contain a sample program `add.c` with its yielded fi
 
 Taking a look at the assembly code, I've noted whether the instructed is performed on the CPU core or is a read/write call to memory.
 
-this is jsut using one function, therefore only one stack.
-
-TOOD:
-- Where are the memory addresses marked in the assembly file?
-- what about multi function?
-- conditional?
+I preferred reading the assembly instructions straight from `objdump` since they provide the addresses for instructions.
 
 ## executing-the-process
 
-TODO: find out where the initial entry point is within the executable's header
+2 simple programs were executed to help understand the process execution flow.
 
-In summary, the absence of an instruction setting the frame pointer in your main function suggests that the compiler has optimized it to use the stack pointer directly for stack frame management due to the function's simplicity. This is a valid optimization strategy. You'll likely see the frame pointer being used in more complex functions you might write or in library code.
+I noticed that even for simpler programs (`add`), compiler optimization strategies are employed. i.e. deciding not to maintain a frame (base) pointer.
+Sometimes, the optimatization strategy actually makes the code *less* optimal. i.e. why did `add.s` need to store `a` and `b` in memory instead of adding from 2 registers directly?
+
+The program's entrypoint was identified using `otool -lv add | grep entry`, giving the offset. When converted to hex, this mapped with the `main` address in `objdump -d --macho add`.
+
+In a second program (`multi-function.c`), I was curious to see if it was possible to replicate a L-Cache miss (due to being 88 bytes away) and see the CPU fetch a new 64-bytes of memory. I did see the function move:
+```(lldb) n
+Process 47492 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = instruction step over
+    frame #0: 0x0000000100003f84 multi-function`main + 48
+multi-function`main:
+->  0x100003f84 <+48>: bl     0x100003f2c               ; adding
+    0x100003f88 <+52>: mov    x8, x0
+    0x100003f8c <+56>: ldr    w0, [sp, #0xc]
+    0x100003f90 <+60>: str    w8, [sp, #0x10]
+Target 0: (multi-function) stopped.
+(lldb) s
+Process 47492 stopped
+* thread #1, queue = 'com.apple.main-thread', stop reason = instruction step into
+    frame #0: 0x0000000100003f2c multi-function`adding
+multi-function`adding:
+->  0x100003f2c <+0>:  sub    sp, sp, #0x10
+    0x100003f30 <+4>:  str    w0, [sp, #0xc]
+    0x100003f34 <+8>:  str    w1, [sp, #0x8]
+    0x100003f38 <+12>: ldr    w8, [sp, #0xc]
+Target 0: (multi-function) stopped.
+```
+
+But, it does not seem feasible to see that occur on MacOS without additional tooling.

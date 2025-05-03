@@ -1,6 +1,4 @@
-#define PI 3.14
-
-int add(int a, int b) {
+int adding(int a, int b) {
     int c = a + b;
     return c;
 }
@@ -8,6 +6,6 @@ int add(int a, int b) {
 int main() {
     int a = 1;
     int b = 2;
-    int c = add(a, b);
+    int c = adding(a, b);
     return 0;
 }

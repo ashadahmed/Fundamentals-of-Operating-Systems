@@ -35,6 +35,15 @@ Sometimes, the optimatization strategy actually makes the code *less* optimal. i
 
 The program's entrypoint was identified using `otool -lv add | grep entry`, giving the offset. When converted to hex, this mapped with the `main` address in `objdump -d --macho add`.
 
+Running the program via `lldb`, I was able to step using `nexti` to see each instruction execute as well as the program counter (`pc`) changes.
+
+```(lldb) register read pc
+      pc = 0x0000000100003f5c  multi-function`main + 8
+...
+(lldb) register read pc
+      pc = 0x0000000100003f60  multi-function`main + 12
+```
+
 In a second program (`multi-function.c`), I was curious to see if it was possible to replicate a L-Cache miss (due to being 88 bytes away) and see the CPU fetch a new 64-bytes of memory. I did see the function move:
 ```(lldb) n
 Process 47492 stopped

@@ -148,3 +148,19 @@ Target 0: (stack-overflow) stopped.
 >>> 8368400 / 1000 / 1000
 8.3684
 ```
+
+TODO: Having trouble with constants in the data section.
+
+## heap
+
+The heap is a section of the process that spans a range of memory addresses (low to high) which, unlike the stack, are dynamically (and manually) allocated and freed.
+
+I allocated an `int` pointer and dynamically stored data at each address to see the value at each address. Depending on the size (in bytes) of a given variable type, those number of bytes will be stored to the heap. Contiguous memory blocks are created by increasing by multiples of the variable type. i.e. allocating a single `int` of 4 bytes spans 4 addresses while allocating an `int` pointer of 40 bytes spans 40 addresses.
+
+Interestingly, freeing the data (which I assumed would only unlink the reservation of those memory addresses) resulted in the data being removed. Based on additional research, it doesn't seem like this is always the case.
+
+C enforces the user to be discplined in managing memory allocations. It is important to be aware of passing a pointer to different functions by the reference or value as this can lead to mismanagement of deallocation memory. Additionally, not freeing memory is costly in C; meaning, if you don't free memory after being done with it, it will stay allocated throughout the lifecycle of the process, causing bloating in RAM and slowing down processes. Other programming languages include different techniques to handle freeing memory in the background (Garbage collection, Rust, etc). Dangling pointers are also a major issue in which a user frees memory twice that can crash the program.
+
+## pointers
+
+Pointers are variables referencing memory addresses in the program's memory which have data stored. For allocations greater than 1 bytes, the pointer points to the starting address of the contiguous memory block.
